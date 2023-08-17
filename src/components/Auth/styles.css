@@ -1,0 +1,7 @@
+.login{
+  display: flex;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  border-radius: .5rem;
+  max-width: 500px !important;
+  flex: 1 1 1;
+}
