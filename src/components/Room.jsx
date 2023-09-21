@@ -7,12 +7,28 @@ import loadFingerpose from '../fingerpose/loadFingerpose'
 const Room = () => {
   const [subtitle, setSubtitle] = React.useState([])
   const [averageSubtitle, setAverageSubtitle] = React.useState([])
+  const [videoAbsolute, setVideoAbsolute] = React.useState(false)
+
   const localVideoRef = React.useRef(null)
   const userVideoRef = React.useRef(null)
   const peer = React.useRef(null)
   const params = useParams()
+
   const echo = useSelector(state => state.AppReducer.echo)
   const user = useSelector(state => state.AppReducer.user)
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 0) setVideoAbsolute(true)
+      if (window.scrollY === 0) setVideoAbsolute(false)
+    }
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [])
 
   React.useEffect(() => {
     if (!echo) {
@@ -83,8 +99,8 @@ const Room = () => {
     })
   }
 
-  const updateSubtitle = React.useCallback((signal, isSequenceSignal) => {
-    if (isSequenceSignal) {
+  const updateSubtitle = React.useCallback((signal, isSequenceSignal, isMovementSignal) => {
+    if (isSequenceSignal || isMovementSignal) {
       return setSubtitle(subtitle => [...subtitle, signal])
     }
 
@@ -122,45 +138,32 @@ const Room = () => {
     return longestSequence;
   }
 
-  const formatSubtitle = () => {
-    let result = ''
-
-    for (let i = 0; i < subtitle.length; i++) {
-      if (i > 0 && subtitle[i - 1].endsWith("_") && subtitle[i].startsWith("_")) {
-        result += " ";
-      }
-
-      result += subtitle[i].replace(/_/g, " ");
-    }
-
-    return result
-  }
-
-
   return (
-    <div className="d-flex h-100">
+    <div className="row bg-darker h-100">
       <div className="col-6">
-        <div className='bg-dark video-content d-flex'>
-          <video ref={userVideoRef} playsInline />
-        </div>
+        <div className="d-flex flex-column h-100 justify-content-evenly align-items-center">
+          <div className={`video-content ${videoAbsolute && 'expanded-video'}`}>
+            <video ref={userVideoRef} playsInline />
+          </div>
 
-        <div className='video-content position-relative'>
-          <video ref={localVideoRef} id="pose-video" className="layer" playsInline></video>
-          <canvas id="pose-canvas" className="layer"></canvas>
-          <div id="pose-result-left" className="layer pose-result"></div>
-          <br />
-          <div id="pose-result-right" className="layer pose-result"></div>
-          <div className='position-absolute top-100 start-50 translate-middle'>
-            <p className="subtitle">{formatSubtitle()}</p>
+          <div className='video-content position-relative'>
+            <video ref={localVideoRef} id="pose-video" className="layer" playsInline></video>
+            <canvas id="pose-canvas" className="layer"></canvas>
+            <div id="pose-result-left" className="layer pose-result"></div>
+            <br />
+            <div id="pose-result-right" className="layer pose-result"></div>
+            {subtitle.length > 0 &&
+              <div className='position-absolute top-100 start-50 translate-middle w-100'>
+                <div className="d-flex justify-content-center flex-wrap">
+                  <p className="subtitle">{subtitle}</p>
+                </div>
+              </div>}
           </div>
         </div>
       </div>
-
-
-
       {/* <div className='bg-dark video-content mt-5'>
       </div> */}
-      <div className="debug col-6">
+      <div className="debug col-6 mt-5">
         <h2>Left Hand</h2>
         <table id="summary-left" className="summary">
           <thead>
@@ -204,8 +207,29 @@ const Room = () => {
             </tr>
           </tbody>
         </table>
-        <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Hand direction</span>
-        <p className='left-hand-direction mb-3'>-</p>
+        <div className="row">
+          <div className="col-sm-6">
+            <div className="mb-2">
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Hand direction</span>
+              <p className='left-hand-direction mb-3'>-</p>
+            </div>
+            <div className="mb-2">
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Movement direction</span>
+              <p className='left-movement-direction mb-3'>-</p>
+            </div>
+          </div>
+
+          <div className="col-sm-6">
+            <div className="mb-2">
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Hand position</span>
+              <p className='left-hand-position mb-3'>-</p>
+            </div>
+            <div className="mb-2">
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Profundity direction</span>
+              <p className='left-profundity-direction mb-3'>-</p>
+            </div>
+          </div>
+        </div>
         <br />
         <h2>Right Hand</h2>
         <table id="summary-right" className="summary">
@@ -250,10 +274,62 @@ const Room = () => {
             </tr>
           </tbody>
         </table>
-        <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Hand direction</span>
-        <p className='right-hand-direction mb-3'>-</p>
+        <div className="row">
+          <div className="col-sm-6">
+            <div className="mb-2">
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Hand direction</span>
+              <p className='right-hand-direction mb-3'>-</p>
+            </div>
+            <div className="mb-2">
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Movement direction</span>
+              <p className='right-movement-direction mb-3'>-</p>
+            </div>
+          </div>
+
+          <div className="col-sm-6">
+            <div className="mb-2">
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Hand position</span>
+              <p className='right-hand-position mb-3'>-</p>
+            </div>
+            <div className="mb-2">
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Profundity direction</span>
+              <p className='right-profundity-direction mb-3'>-</p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* <div className="d-flex justify-content-center">
+        <div className="chat w-100 mx-3 my-5" style={{ maxWidth: 800 }}>
+          <div className="d-flex flex-column w-100 p-3">
+            <p className="user">User: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="user">User: <span>style test style test style test style test style test</span></p>
+            <p className="user">User: <span>style test style test style test style test style test</span></p>
+            <p className="user">User: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="user">User: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="user">User: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+            <p className="stranger">Stranger: <span>style test style test style test style test style test</span></p>
+          </div>
+
+          <textarea className="input" placeholder="Escrever mensagem..." id="floatingTextarea2"></textarea>
+        </div>
+      </div> */}
     </div>
+
   )
 }
 

@@ -1,94 +1,89 @@
-import { Finger, FingerCurl, FingerDirection, HandDirection } from '../FingerDescription';
+import { Finger, FingerCurl, FingerDirection, HandDirection, HandPosition, MovementDirection, ProfundityDirection } from '../FingerDescription';
 import GestureDescription from '../GestureDescription';
 
+// Describe first frame of "J" gesture
+const FirstJDescription = new GestureDescription('j');
 
-const InitialJDescription = new GestureDescription('j');
+// Hand direction config
+FirstJDescription.addHandDirection(HandDirection.FrontHand);
 
-//Initial J
-// thumb:
-InitialJDescription.addHandDirection(HandDirection.FrontHand);
+// Thumb config
+FirstJDescription.addCurl(Finger.Thumb, FingerCurl.HalfCurl, 1.0);
+FirstJDescription.addDirection(Finger.Thumb, FingerDirection.VerticalUp, 1.0);
+FirstJDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpRight, 1.0);
+FirstJDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpLeft, 1.0);
 
-InitialJDescription.addCurl(Finger.Thumb, FingerCurl.NoCurl, 1.0);
-InitialJDescription.addCurl(Finger.Thumb, FingerCurl.HalfCurl, 1.0);
-InitialJDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpRight, 1.0);
-InitialJDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpLeft, 1.0);
-InitialJDescription.addDirection(Finger.Thumb, FingerDirection.VerticalUp, 1.0);
+// Pinky config
+FirstJDescription.addCurl(Finger.Pinky, FingerCurl.NoCurl, 1.0);
+FirstJDescription.addDirection(Finger.Pinky, FingerDirection.VerticalUp, 1.0);
 
-// pinky:
-InitialJDescription.addCurl(Finger.Pinky, FingerCurl.NoCurl, 1.0);
-InitialJDescription.addDirection(Finger.Pinky, FingerDirection.VerticalUp, 1.0);
-InitialJDescription.addDirection(Finger.Pinky, FingerDirection.DiagonalUpLeft, 1.0);
-InitialJDescription.addDirection(Finger.Pinky, FingerDirection.DiagonalUpRight, 1.0);
-
+// Fingers config
 for (let finger of [Finger.Index, Finger.Middle, Finger.Ring]) {
-  InitialJDescription.addCurl(finger, FingerCurl.FullCurl, 1.0);
-  // InitialJDescription.addCurl(finger, FingerCurl.HalfCurl, 1.0);
-  InitialJDescription.addDirection(finger, FingerDirection.VerticalUp, 1.0);
-  InitialJDescription.addDirection(finger, FingerDirection.DiagonalUpLeft, 1.0);
-  InitialJDescription.addDirection(finger, FingerDirection.DiagonalUpRight, 1.0);
+  FirstJDescription.addCurl(finger, FingerCurl.FullCurl, 1.0);
+  FirstJDescription.addDirection(finger, FingerDirection.VerticalUp, 1.0);
+  FirstJDescription.addDirection(finger, FingerDirection.DiagonalUpLeft, 1.0);
+  FirstJDescription.addDirection(finger, FingerDirection.DiagonalUpRight, 1.0);
 }
 
 
-// Mid J
-// thumb:
-const MidJDescription = new GestureDescription('j');
+// Describe second frame of "J" gesture
+const SecondJDescription = new GestureDescription('j2');
 
-MidJDescription.addCurl(Finger.Thumb, FingerCurl.NoCurl, 1.0);
-MidJDescription.addCurl(Finger.Thumb, FingerCurl.HalfCurl, 1.0);
-MidJDescription.addDirection(Finger.Thumb, FingerDirection.VerticalDown, 1.0);
-MidJDescription.addDirection(Finger.Thumb, FingerDirection.HorizontalRight, 1.0);
-MidJDescription.addDirection(Finger.Thumb, FingerDirection.HorizontalLeft, 1.0);
+// Hand position config
+SecondJDescription.addHandPosition(HandPosition.DiagonalUpLeft);
+SecondJDescription.addHandPosition(HandPosition.HorizontalLeft);
+SecondJDescription.addHandPosition(HandPosition.HorizontalRight);
 
-// pinky:
-MidJDescription.addCurl(Finger.Pinky, FingerCurl.NoCurl, 1.0);
-MidJDescription.addCurl(Finger.Pinky, FingerCurl.HalfCurl, 1.0);
-MidJDescription.addDirection(Finger.Pinky, FingerDirection.DiagonalUpLeft, 1.0);
-MidJDescription.addDirection(Finger.Pinky, FingerDirection.DiagonalDownLeft, 1.0);
-MidJDescription.addDirection(Finger.Pinky, FingerDirection.DiagonalDownRight, 1.0);
-MidJDescription.addDirection(Finger.Pinky, FingerDirection.HorizontalRight, 1.0);
-MidJDescription.addDirection(Finger.Pinky, FingerDirection.HorizontalLeft, 1.0);
+// Thumb config
+SecondJDescription.addCurl(Finger.Thumb, FingerCurl.NoCurl, 1.0);
+SecondJDescription.addDirection(Finger.Thumb, FingerDirection.HorizontalLeft, 1.0);
+SecondJDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpRight, 1.0);
+SecondJDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpLeft, 1.0);
 
-for (let finger of [Finger.Index, Finger.Middle, Finger.Ring]) {
-  MidJDescription.addCurl(finger, FingerCurl.FullCurl, 1.0);
-  MidJDescription.addCurl(finger, FingerCurl.HalfCurl, 1.0);
-  MidJDescription.addDirection(finger, FingerDirection.HorizontalLeft, 1.0);
-  MidJDescription.addDirection(finger, FingerDirection.HorizontalRight, 1.0);
-  MidJDescription.addDirection(finger, FingerDirection.DiagonalUpLeft, 1.0);
-  MidJDescription.addDirection(finger, FingerDirection.DiagonalUpRight, 1.0);
-  MidJDescription.addDirection(finger, FingerDirection.DiagonalDownLeft, 1.0);
-  MidJDescription.addDirection(finger, FingerDirection.DiagonalDownRight, 1.0);
+// Pinky config
+SecondJDescription.addCurl(Finger.Pinky, FingerCurl.HalfCurl, 1.0);
+SecondJDescription.addDirection(Finger.Pinky, FingerDirection.HorizontalLeft, 1.0);
+SecondJDescription.addDirection(Finger.Pinky, FingerDirection.DiagonalUpRight, 1.0);
+SecondJDescription.addDirection(Finger.Pinky, FingerDirection.DiagonalUpLeft, 1.0);
+
+for (let finger of [Finger.Middle, Finger.Ring, Finger.Pinky]) {
+  SecondJDescription.addCurl(finger, FingerCurl.FullCurl, 1.0);
+  SecondJDescription.addCurl(finger, FingerCurl.HalfCurl, 1.0);
+  SecondJDescription.addDirection(finger, FingerDirection.DiagonalUpLeft, 1.0);
+  SecondJDescription.addDirection(finger, FingerDirection.HorizontalLeft, 1.0);
+  SecondJDescription.addDirection(finger, FingerDirection.HorizontalRight, 1.0);
 }
 
 
-// Ending J
-const EndingJDescription = new GestureDescription('j');
+// Describe third frame of "J" gesture
+const ThirdJDescription = new GestureDescription('j3');
 
-EndingJDescription.addHandDirection(HandDirection.BackHand);
+// Hand direction config
+ThirdJDescription.addHandDirection(HandDirection.BackHand);
 
-// thumb:
-EndingJDescription.addCurl(Finger.Thumb, FingerCurl.NoCurl, 1.0);
-EndingJDescription.addCurl(Finger.Thumb, FingerCurl.HalfCurl, 1.0);
-EndingJDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpRight, 1.0);
-EndingJDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpLeft, 1.0);
-EndingJDescription.addDirection(Finger.Thumb, FingerDirection.VerticalUp, 1.0);
+// Thumb config
+ThirdJDescription.addCurl(Finger.Thumb, FingerCurl.NoCurl, 1.0);
+ThirdJDescription.addCurl(Finger.Thumb, FingerCurl.HalfCurl, 1.0);
+ThirdJDescription.addDirection(Finger.Thumb, FingerDirection.VerticalUp, 1.0);
+ThirdJDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpLeft, 1.0);
+ThirdJDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpRight, 1.0);
 
-// pinky:
-EndingJDescription.addCurl(Finger.Pinky, FingerCurl.NoCurl, 1.0);
-EndingJDescription.addCurl(Finger.Pinky, FingerCurl.HalfCurl, 1.0);
-EndingJDescription.addDirection(Finger.Pinky, FingerDirection.DiagonalUpRight, 1.0);
-EndingJDescription.addDirection(Finger.Pinky, FingerDirection.DiagonalUpLeft, 1.0);
-EndingJDescription.addDirection(Finger.Pinky, FingerDirection.VerticalUp, 1.0);
+// Pinky config
+ThirdJDescription.addCurl(Finger.Pinky, FingerCurl.HalfCurl, 1.0);
+ThirdJDescription.addDirection(Finger.Pinky, FingerDirection.VerticalUp, 1.0);
+ThirdJDescription.addDirection(Finger.Pinky, FingerDirection.DiagonalUpLeft, 1.0);
+ThirdJDescription.addDirection(Finger.Pinky, FingerDirection.DiagonalUpRight, 1.0);
 
+// Fingers config
 for (let finger of [Finger.Index, Finger.Middle, Finger.Ring]) {
-  EndingJDescription.addCurl(finger, FingerCurl.FullCurl, 1.0);
-  EndingJDescription.addCurl(finger, FingerCurl.HalfCurl, 1.0);
-  EndingJDescription.addDirection(finger, FingerDirection.VerticalUp, 1.0);
-  EndingJDescription.addDirection(finger, FingerDirection.DiagonalUpLeft, 1.0);
-  EndingJDescription.addDirection(finger, FingerDirection.DiagonalUpRight, 1.0);
+  ThirdJDescription.addCurl(finger, FingerCurl.FullCurl, 1.0);
+  ThirdJDescription.addDirection(finger, FingerDirection.VerticalUp, 1.0);
+  ThirdJDescription.addDirection(finger, FingerDirection.DiagonalUpLeft, 1.0);
+  ThirdJDescription.addDirection(finger, FingerDirection.DiagonalUpRight, 1.0);
 }
 
 export default [
-  InitialJDescription,
-  MidJDescription,
-  EndingJDescription
+  FirstJDescription,
+  SecondJDescription,
+  ThirdJDescription
 ]

@@ -1,5 +1,6 @@
 import Gestures from '../fingerpose/gestures'
 import GestureEstimator from '../fingerpose/GestureEstimator'
+import { MovementDirection } from './FingerDescription'
 
 const config = {
   video: { width: 640, height: 480, fps: 30 }
@@ -15,12 +16,34 @@ const landmarkColors = {
 }
 
 const gestureStrings = {
-  '_thumbs_up_': '👍',
-  'v': 'V',
-  'g': 'G',
-  'l': 'L',
-  'j': 'J',
-  'h': 'H',
+  'a': 'a',
+  'b': 'b',
+  'c': 'c',
+  'd': 'd',
+  'e': 'e',
+  'f': 'f',
+  'g': 'g',
+  'h': 'h',
+  'i': 'i',
+  'j': 'j',
+  'k': 'k',
+  'l': 'l',
+  'm': 'm',
+  'n': 'n',
+  'o': 'o',
+  'p': 'p',
+  'q': 'q',
+  'r': 'r',
+  's': 's',
+  't': 't',
+  'u': 'u',
+  'v': 'v',
+  'w': 'w',
+  'x': 'x',
+  'y': 'y',
+  'z': 'z',
+  'thumbs_up': ' joia ',
+  'help': ' ajuda ',
 }
 
 async function createDetector() {
@@ -47,12 +70,34 @@ export default async (updateSubtitle) => {
   // configure gesture estimator
   // add "✌🏻" and "👍" as sample gestures
   const knownGestures = [
-    Gestures.VictoryGesture,
-    Gestures.ThumbsUpGesture,
+    Gestures.AGesture,
+    Gestures.BGesture,
+    Gestures.CGesture,
+    Gestures.DGesture,
+    Gestures.EGesture,
+    Gestures.FGesture,
     Gestures.GGesture,
-    Gestures.LGesture,
-    Gestures.JGesture,
     Gestures.HGesture,
+    Gestures.IGesture,
+    Gestures.JGesture,
+    Gestures.KGesture,
+    Gestures.LGesture,
+    Gestures.MGesture,
+    Gestures.NGesture,
+    Gestures.OGesture,
+    Gestures.PGesture,
+    Gestures.QGesture,
+    Gestures.RGesture,
+    Gestures.SGesture,
+    Gestures.TGesture,
+    Gestures.UGesture,
+    Gestures.VGesture,
+    Gestures.WGesture,
+    Gestures.XGesture,
+    Gestures.YGesture,
+    Gestures.ZGesture,
+    // Gestures.ThumbsUpGesture,
+    // Gestures.HelpGesture
   ]
 
   const GE = new GestureEstimator(knownGestures)
@@ -81,7 +126,7 @@ export default async (updateSubtitle) => {
       }
 
       // console.log('hand', hand)
-      const est = GE.estimate(hand.keypoints, hand.keypoints3D, 10, hand.handedness)
+      const est = GE.estimate(hand.keypoints, hand.keypoints3D, 10, hand.handedness, hands)
       const chosenHand = hand.handedness.toLowerCase()
       if (est.gestures.length > 0) {
 
@@ -90,10 +135,9 @@ export default async (updateSubtitle) => {
           return (p.score > c.score) ? p : c
         })
         resultLayer[chosenHand].innerText = gestureStrings[result.name]
-        updateSubtitle(result.name, result?.isSequenceSignal)
-
+        updateSubtitle(gestureStrings[result.name], result?.isSequenceSignal, result?.isMovementSignal)
       }
-      updateDebugInfo(est.poseData, chosenHand, est.handDirection)
+      updateDebugInfo(est.poseData, chosenHand, est.handDirection, est.handPosition, est.movementDirection, est.profundityDirection)
     }
     // ...and so on
     setTimeout(() => { estimateHands() }, 1000 / config.video.fps)
@@ -110,12 +154,15 @@ function drawPoint(ctx, x, y, r, color) {
   ctx.fill()
 }
 
-function updateDebugInfo(data, hand, handDirection) {
+function updateDebugInfo(data, hand, handDirection, handPosition, movementDirection, profundityDirection) {
   const summaryTable = `#summary-${hand}`
 
   for (let fingerIdx in data) {
     document.querySelector(`${summaryTable} span#curl-${fingerIdx}`).innerHTML = data[fingerIdx][1]
     document.querySelector(`${summaryTable} span#dir-${fingerIdx}`).innerHTML = data[fingerIdx][2]
   }
-  document.querySelector(`.${hand}-hand-direction`).textContent = handDirection
+  document.querySelector(`.${hand}-hand-direction`).textContent = handDirection ?? '-'
+  document.querySelector(`.${hand}-hand-position`).textContent = handPosition ?? '-'
+  document.querySelector(`.${hand}-movement-direction`).textContent = movementDirection ?? '-'
+  document.querySelector(`.${hand}-profundity-direction`).textContent = profundityDirection ?? '-'
 }

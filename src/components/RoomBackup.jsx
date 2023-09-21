@@ -53,7 +53,7 @@ const RoomBackup = () => {
     )
   }
 
-  async function main(video, canvas) {
+  async function main() {
 
     const video = document.querySelector("#pose-video")
     const canvas = document.querySelector("#pose-canvas")

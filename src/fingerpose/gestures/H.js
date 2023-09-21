@@ -1,81 +1,91 @@
-import { Finger, FingerCurl, FingerDirection, HandDirection } from '../FingerDescription';
+import { Finger, FingerCurl, FingerDirection, FingerSpacing, HandDirection, HandMap, HandPosition, MovementDirection, ProfundityDirection } from '../FingerDescription';
 import GestureDescription from '../GestureDescription';
 
 
 // describe victory gesture ✌️
 const InitialHDescription = new GestureDescription('h');
 
+// Hand direction config
 InitialHDescription.addHandDirection(HandDirection.FrontHand);
 
-// thumb:
+// Hand position config
+InitialHDescription.addHandPosition(HandPosition.VerticalUp);
+
+// Profundity config
+InitialHDescription.addProfundity(ProfundityDirection.Static);
+
+// Finger spacing config
+InitialHDescription.addFingerSpacing(HandMap.Index, HandMap.Middle, FingerSpacing.Far, 1.0);
+
+// Thumb config
 InitialHDescription.addCurl(Finger.Thumb, FingerCurl.NoCurl, 1.0);
-InitialHDescription.addDirection(Finger.Thumb, FingerDirection.VerticalUp, 1.0);
-InitialHDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpLeft, 1.0);
-InitialHDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpRight, 1.0);
 
-// index:
+// Index config
 InitialHDescription.addCurl(Finger.Index, FingerCurl.NoCurl, 1.0);
-InitialHDescription.addDirection(Finger.Index, FingerDirection.VerticalUp, 1.0);
-InitialHDescription.addDirection(Finger.Index, FingerDirection.DiagonalUpLeft, 1.0);
-InitialHDescription.addDirection(Finger.Index, FingerDirection.DiagonalUpRight, 1.0);
-InitialHDescription.addDirection(Finger.Index, FingerDirection.HorizontalLeft, 1.0);
-InitialHDescription.addDirection(Finger.Index, FingerDirection.HorizontalRight, 1.0);
 
-// middle:
+// Middle config
 InitialHDescription.addCurl(Finger.Middle, FingerCurl.NoCurl, 1.0);
-InitialHDescription.addDirection(Finger.Middle, FingerDirection.VerticalUp, 1.0);
-InitialHDescription.addDirection(Finger.Middle, FingerDirection.DiagonalUpLeft, 1.0);
-InitialHDescription.addDirection(Finger.Middle, FingerDirection.DiagonalUpRight, 1.0);
-InitialHDescription.addDirection(Finger.Middle, FingerDirection.HorizontalLeft, 1.0);
-InitialHDescription.addDirection(Finger.Middle, FingerDirection.HorizontalRight, 1.0);
 
-// ring:
+// Ring config
 InitialHDescription.addCurl(Finger.Ring, FingerCurl.FullCurl, 1.0);
-InitialHDescription.addCurl(Finger.Ring, FingerCurl.HalfCurl, 0.9);
 
-// pinky:
+// Pinky config
 InitialHDescription.addCurl(Finger.Pinky, FingerCurl.FullCurl, 1.0);
-InitialHDescription.addCurl(Finger.Pinky, FingerCurl.HalfCurl, 0.9);
+
+// Fingers config
+for (let finger of [Finger.Thumb, Finger.Index, Finger.Middle, Finger.Ring, Finger.Pinky]) {
+  InitialHDescription.addDirection(finger, FingerDirection.VerticalUp, 1.0);
+  InitialHDescription.addDirection(finger, FingerDirection.DiagonalUpLeft, 1.0);
+  InitialHDescription.addDirection(finger, FingerDirection.DiagonalUpRight, 1.0);
+}
 
 
 // describe victory gesture ✌️
 const EndHDescription = new GestureDescription('h');
 
+// Hand direction config
 EndHDescription.addHandDirection(HandDirection.BackHand);
 
-// thumb:
-EndHDescription.addCurl(Finger.Thumb, FingerCurl.NoCurl, 1.0);
-EndHDescription.addDirection(Finger.Thumb, FingerDirection.VerticalUp, 1.0);
-EndHDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpLeft, 1.0);
-EndHDescription.addDirection(Finger.Thumb, FingerDirection.DiagonalUpRight, 1.0);
+// Hand position config
+EndHDescription.addHandPosition(HandPosition.VerticalUp);
+EndHDescription.addHandPosition(HandPosition.DiagonalUpLeft);
+EndHDescription.addHandPosition(HandPosition.DiagonalUpRight);
 
-// index:
+// Profundity config
+EndHDescription.addProfundity(ProfundityDirection.Static);
+
+// Finger spacing config
+EndHDescription.addFingerSpacing(HandMap.Index, HandMap.Middle, FingerSpacing.Far, 1.0);
+
+// Thumb config
+EndHDescription.addCurl(Finger.Thumb, FingerCurl.NoCurl, 1.0);
+EndHDescription.addCurl(Finger.Thumb, FingerCurl.HalfCurl, 1.0);
+
+// Index config
 EndHDescription.addCurl(Finger.Index, FingerCurl.NoCurl, 1.0);
 EndHDescription.addCurl(Finger.Index, FingerCurl.HalfCurl, 1.0);
-EndHDescription.addDirection(Finger.Index, FingerDirection.VerticalUp, 1.0);
-EndHDescription.addDirection(Finger.Index, FingerDirection.DiagonalUpLeft, 1.0);
-EndHDescription.addDirection(Finger.Index, FingerDirection.DiagonalUpRight, 1.0);
-EndHDescription.addDirection(Finger.Index, FingerDirection.HorizontalLeft, 1.0);
-EndHDescription.addDirection(Finger.Index, FingerDirection.HorizontalRight, 1.0);
 
-// middle:
+// Middle config
 EndHDescription.addCurl(Finger.Middle, FingerCurl.NoCurl, 1.0);
 EndHDescription.addCurl(Finger.Middle, FingerCurl.HalfCurl, 1.0);
-EndHDescription.addDirection(Finger.Middle, FingerDirection.VerticalUp, 1.0);
-EndHDescription.addDirection(Finger.Middle, FingerDirection.DiagonalUpLeft, 1.0);
-EndHDescription.addDirection(Finger.Middle, FingerDirection.DiagonalUpRight, 1.0);
-EndHDescription.addDirection(Finger.Middle, FingerDirection.HorizontalLeft, 1.0);
-EndHDescription.addDirection(Finger.Middle, FingerDirection.HorizontalRight, 1.0);
 
-// ring:
+// Ring config
 EndHDescription.addCurl(Finger.Ring, FingerCurl.FullCurl, 1.0);
-EndHDescription.addCurl(Finger.Ring, FingerCurl.HalfCurl, 0.9);
 
-// pinky:
+// Pinky config
 EndHDescription.addCurl(Finger.Pinky, FingerCurl.FullCurl, 1.0);
-EndHDescription.addCurl(Finger.Pinky, FingerCurl.HalfCurl, 0.9);
+
+// Fingers config
+for (let finger of [Finger.Thumb, Finger.Index, Finger.Middle, Finger.Ring, Finger.Pinky]) {
+  EndHDescription.addDirection(finger, FingerDirection.VerticalUp, 1.0);
+  EndHDescription.addDirection(finger, FingerDirection.DiagonalUpLeft, 1.0);
+  EndHDescription.addDirection(finger, FingerDirection.DiagonalUpRight, 1.0);
+}
 
 export default [
   InitialHDescription,
   EndHDescription
 ]
+
+// export default InitialHDescription
+

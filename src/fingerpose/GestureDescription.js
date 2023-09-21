@@ -7,7 +7,14 @@ export default class GestureDescription {
     // gesture as described by curls / directions
     this.curls = {};
     this.directions = {};
+    this.handMovements = [];
+    this.distancePoints = [];
+    this.fingerDistancePoints = [];
+    this.fingerSpaces = [];
+    this.handPositions = [];
     this.handDirection = null;
+    this.profundityDirection = null;
+    this.lastMovement = null;
   }
 
   addCurl(finger, curl, contrib = 1.0) {
@@ -28,8 +35,31 @@ export default class GestureDescription {
     this.handDirection = position
   }
 
-  matchAgainst(detectedCurls, detectedDirections, handDirection) {
-    // console.log('teste', this.handDirection, handDirection, detectedCurls, detectedDirections)
+  addHandPosition(position) {
+    this.handPositions = [...this.handPositions, position]
+  }
+
+  addProfundity(profundity) {
+    this.profundityDirection = profundity
+  }
+
+  addMovementDirection(direction) {
+    this.handMovements = [...this.handMovements, { direction, matched: false }]
+  }
+
+  addHandDistance(pointFrom, pointTo, distance) {
+    this.distancePoints = [...this.distancePoints, { pointFrom, pointTo, distance, matched: false }]
+  }
+
+  addFingerDistance(pointFrom, pointTo, distance) {
+    this.fingerDistancePoints = [...this.fingerDistancePoints, { pointFrom, pointTo, distance, matched: false }]
+  }
+
+  addFingerSpacing(pointFrom, pointTo, distance) {
+    this.fingerSpaces = [...this.fingerSpaces, { pointFrom, pointTo, distance, matched: false }]
+  }
+
+  matchAgainst(detectedCurls, detectedDirections, handDirection, handPosition, movementDirection, profundityDirection) {
     let score = 0.0;
     let numParameters = 0;
 
@@ -100,8 +130,47 @@ export default class GestureDescription {
       }
     }
 
-    if (this.handDirection && handDirection !== this.handDirection) {
+    if (this.handDirection !== null && handDirection !== this.handDirection) {
       return 0;
+    }
+
+    if (this.handPositions.length > 0 && !this.handPositions.some(item => item === handPosition)) {
+      return 0;
+    }
+
+    this.handMovements.forEach((item, index) => {
+      if (index === 0 || this.handMovements[index - 1].matched) {
+        if (item.direction === movementDirection && movementDirection !== this.lastMovement) {
+          item.matched = true;
+        }
+      }
+    });
+
+    this.lastMovement = movementDirection;
+
+    if (this.handMovements.length > 0 && this.handMovements.some(item => !item.matched)) {
+      return 0
+    } else {
+      this.handMovements.forEach(item => item.matched = false)
+
+    }
+
+    if (this.handMovements.length > 1 && this.handMovements.every(item => item.matched)) {
+      this.handMovements.forEach(item => item.matched = false)
+    }
+
+    if (this.distancePoints.length > 0 && !this.distancePoints.every(item => item.matched)) {
+      return 0
+    }
+
+    if (this.fingerSpaces.length > 0 && !this.fingerSpaces.every(item => item.matched)) {
+      return 0
+    }
+
+
+    if (this.profundityDirection !== null && this.profundityDirection !== profundityDirection) {
+
+      return 0
     }
 
     // multiply final score with 10 (to maintain compatibility)

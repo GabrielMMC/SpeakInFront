@@ -1,11 +1,18 @@
-import { Finger, FingerCurl, FingerDirection } from './FingerDescription';
+import { Distance, Finger, FingerCurl, FingerDirection, FingerSpacing, HandDirection, HandPosition, MovementDirection, ProfundityDirection } from './FingerDescription';
+import videoConfig from './videoConfig';
 
 export default class FingerPoseEstimator {
 
   constructor(options) {
-    this.prevCoordinates = [];
+    this.avgProfundity = { Left: [], Right: [] };
+    this.prevCoordinates = { Left: [], Right: [] };
     this.maxPrevCoordinates = 5;
-    this.coordinatesTimer = null;
+    this.movementDirection = 0;
+    this.handPosition = 0;
+
+    this.firstHand = null;
+    this.secondHand = null;
+    this.threshold = Math.min(videoConfig.width, videoConfig.height) * 0.15
 
     this.options = {
       ...{
@@ -24,6 +31,7 @@ export default class FingerPoseEstimator {
 
   estimate(keypoints, landmarks, handSide) {
 
+    this.updateMovementCoordinates(keypoints.map((item, index) => { return { x: item[0], y: item[1], z: landmarks[index][2] } }), handSide);
     // step 1: calculate slopes
     let slopesXY = [];
     let slopesYZ = [];
@@ -52,7 +60,7 @@ export default class FingerPoseEstimator {
     }
 
     // step 2: calculate orientations
-
+    // console.log('slopes', slopesYZ[0][3])
     let fingerCurls = [];
     let fingerDirections = [];
 
@@ -81,125 +89,244 @@ export default class FingerPoseEstimator {
 
     }
 
-    // let hand = this.calculateHandDirection(handDirection, landmarks, fingerDirections)
-    let hand = this.calculateHandDirection(landmarks[0][0], landmarks[0][1], landmarks[2][0], landmarks[2][1], landmarks[17][0], landmarks[17][1], handSide)
-    let movement = this.calculateMovement(keypoints[0][0], keypoints[0][1], keypoints)
+    let movement = this.calculateMovement(handSide)
 
-    console.log('movement', movement)
+    let profundity = this.calculateProfundity(handSide)
 
-    return { curls: fingerCurls, directions: fingerDirections, handDirection: hand }
+    let handDirection = this.calculateHandDirection(landmarks[0][0], landmarks[0][1], landmarks[2][0], landmarks[2][1], landmarks[17][0], landmarks[17][1], handSide)
+
+    let handPosition = this.calculateHandPosition(handDirection, landmarks[0][0], landmarks[0][1], landmarks[9][0], landmarks[9][1], landmarks[13][0], landmarks[13][1])
+
+    return { curls: fingerCurls, directions: fingerDirections, handDirection: handDirection, handPosition: handPosition, movementDirection: movement, profundity }
+  }
+
+  estimateFingerSpacing(gesture, landmarks) {
+    gesture.fingerSpaces.forEach((item) => {
+      let diffX = Math.abs(landmarks[item.pointFrom.Top][0] - landmarks[item.pointTo.Top][0]) * this.threshold
+      let diffY = Math.abs(landmarks[item.pointFrom.Top][1] - landmarks[item.pointTo.Top][1]) * this.threshold
+      let diffZ = Math.abs(landmarks[item.pointFrom.Top][2] - landmarks[item.pointTo.Top][2]) * this.threshold
+      const calc = diffX + diffY
+
+      if (item.distance === FingerSpacing.Crossed
+        && landmarks[item.pointFrom.Top][0] >= landmarks[item.pointTo.Top][0] && landmarks[item.pointFrom.Base][0] < landmarks[item.pointTo.Base][0]) {
+        item.matched = true
+        return
+
+      } else if (item.distance === FingerSpacing.Close && calc < 2.5) {
+        item.matched = true
+        return
+
+      } else if (item.distance === FingerSpacing.Far && calc > 4) {
+        item.matched = true
+        return
+      }
+
+      item.matched = false
+    })
+  }
+
+  // console.log('resukt', result)
+  estimateDistance(hands, gesture) {
+    // console.log('hands', hands)
+    gesture.signals.forEach(signal => {
+      signal.distancePoints.forEach(item => {
+        const result = this.calculateDistance(item.pointFrom, item.pointTo, hands)
+        result === item.distance ? item.matched = true : item.matched = false
+      })
+    })
+  }
+
+  calculateDistance(pointFrom, pointTo, hands) {
+    const firstHandFrom = hands[0].keypoints[pointFrom];
+    const secondHandFrom = hands[1].keypoints[pointFrom];
+    const firstHandTo = hands[0].keypoints[pointTo];
+    const secondHandTo = hands[1].keypoints[pointTo];
+
+    const distance1 = Math.hypot(firstHandFrom.x - secondHandTo.x, firstHandFrom.y - secondHandTo.y);
+    const distance2 = Math.hypot(secondHandFrom.x - firstHandTo.x, secondHandFrom.y - firstHandTo.y);
+
+    if (distance1 < this.threshold || distance2 < this.threshold) {
+      return Distance.Close;
+    } else if (distance1 < 3 * this.threshold || distance2 < 3 * this.threshold) {
+      return Distance.Moderate;
+    } else if (distance1 < 5 * this.threshold || distance2 < 5 * this.threshold) {
+      return Distance.Far;
+    } else {
+      return Distance.VeryFar;
+    }
   }
 
   calculateHandDirection(palmX, palmY, thumbX, thumbY, pinkyX, pinkyY, handSide) {
     if (handSide === 'Right') {
+      // Up hand comparation
       if (palmY > thumbY && palmY > pinkyY) {
         if (thumbX < pinkyX) {
-          return 0
+          return HandDirection.FrontHand
         } else {
-          return 1
+          return HandDirection.BackHand
         }
       }
       else if (palmY > thumbY && palmY < pinkyY && palmX < thumbX) {
-        return 0
+        return HandDirection.FrontHand
       }
       else if (palmY > thumbY && palmY < pinkyY && palmX > thumbX) {
-        return 1
+        return HandDirection.BackHand
       }
       else if (palmY < thumbY && palmY > pinkyY && palmX > thumbX) {
-        return 0
+        return HandDirection.FrontHand
       }
       else if (palmY < thumbY && palmY > pinkyY && palmX < thumbX) {
-        return 1
+        return HandDirection.BackHand
       }
       else if (palmY < pinkyY) {
         if (thumbX > pinkyX) {
-          return 0
+          return HandDirection.FrontHand
         } else {
-          return 1
+          return HandDirection.BackHand
         }
       }
     } else {
       // Left hand estimator
       if (palmY > thumbY && palmY > pinkyY) {
         if (thumbX > pinkyX) {
-          return 0
+          return HandDirection.FrontHand
         } else {
-          return 1
+          return HandDirection.BackHand
         }
       }
       else if (palmY > thumbY && palmY < pinkyY && palmX > thumbX) {
-        return 0
+        return HandDirection.FrontHand
       }
       else if (palmY > thumbY && palmY < pinkyY && palmX < thumbX) {
-        return 1
+        return HandDirection.BackHand
       }
       else if (palmY < thumbY && palmY > pinkyY && palmX < thumbX) {
-        return 0
+        return HandDirection.FrontHand
       }
       else if (palmY < thumbY && palmY > pinkyY && palmX > thumbX) {
-        return 1
+        return HandDirection.BackHand
       }
       else if (palmY < pinkyY) {
         if (thumbX < pinkyX) {
-          prevCoordinates
-          return 0
+          return HandDirection.FrontHand
         } else {
-          return 1
+          return HandDirection.BackHand
         }
       }
     }
   }
 
-  calculateMovement(palmX, palmY) {
-    this.updateMovementCoordinates(palmX, palmY);
+  calculateHandPosition(handDirection, palmX, palmY, middleX, middleY, ringX, ringY) {
+    const deltaX = handDirection === HandDirection.FrontHand ? (ringX - palmX) : (middleX - palmX);
+    const deltaY = handDirection === HandDirection.FrontHand ? (ringY - palmY) : (middleY - palmY);
 
-    let startCoord, endCoord;
+    const angleRadians = Math.atan2(deltaY, deltaX);
+    const angleDegrees = angleRadians * (180 / Math.PI);
 
-    if (this.prevCoordinates.length === this.maxPrevCoordinates) {
-      startCoord = this.prevCoordinates[0];
-      endCoord = this.prevCoordinates[this.maxPrevCoordinates - 1];
-    } else {
-      startCoord = this.prevCoordinates[0];
-      endCoord = this.prevCoordinates[this.prevCoordinates.length - 1];
+    if (angleDegrees <= -135 && angleDegrees >= -180) {
+      return HandPosition.HorizontalLeft
+    } else if (angleDegrees <= -90 && angleDegrees >= -135) {
+      return HandPosition.DiagonalUpLeft
+    } else if (angleDegrees >= -90 && angleDegrees <= -45) {
+      return HandPosition.VerticalUp
+    } else if (angleDegrees >= -45 && angleDegrees <= 0) {
+      return HandPosition.DiagonalUpRight
+    } else if (angleDegrees >= 0 && angleDegrees <= 45) {
+      return HandPosition.HorizontalRight
+    } else if (angleDegrees >= 45 && angleDegrees <= 90) {
+      return HandPosition.DiagonalDownRight
+    } else if (angleDegrees >= 90 && angleDegrees <= 135) {
+      return HandPosition.VerticalDown
+    } else if (angleDegrees >= 135 && angleDegrees <= 180) {
+      return HandPosition.DiagonalDownLeft
     }
-
-    const deltaX = endCoord.x - startCoord.x;
-    const deltaY = endCoord.y - startCoord.y;
-
-    // return { start: startCoord.y, end: endCoord.y, delta: deltaY }
-    // return keypoints[0][1]
-
-    // console.log('deltaY', deltaY)
-    if (Math.abs(deltaX) < 30 && Math.abs(deltaY) < 30) {
-      return "Sem movimento significativo";
-    } else if (Math.abs(deltaX) > 30) {
-      if (startCoord.x < endCoord.x) {
-        return 'Horizontal Direita'
-      } else {
-        return 'Horizontal Esquerda'
-      }
-    } else if (Math.abs(deltaX) < 30 && Math.abs(deltaY) > 30) {
-      if (startCoord.y > endCoord.y) {
-        return 'Cima'
-      } else {
-        return 'Baixo'
-      }
-    }
-
-
-    // console.log('accord', startCoord, endCoord)
-    // return deltaY
-    // return { start: Math.abs(startCoord.x), end: Math.abs(endCoord.x), delta: Math.abs(deltaX) }
   }
 
-  updateMovementCoordinates(palmX, palmY) {
-    this.prevCoordinates.push({ x: palmX, y: palmY });
+  calculateMovement(handSide) {
+    let startCoord, endCoord;
 
-    if (this.prevCoordinates.length > this.maxPrevCoordinates) {
-      this.prevCoordinates.shift(); // Remove o elemento mais antigo
+    startCoord = this.prevCoordinates[handSide][0];
+    endCoord = this.prevCoordinates[handSide][Math.min(this.prevCoordinates[handSide].length - 1, this.maxPrevCoordinates - 1)];
 
-      // clearTimeout(this.coordinatesTimer)
-      // this.coordinatesTimer = setTimeout(() => this.prevCoordinates = [], 5000)
+    const diffX = endCoord.x - startCoord.x;
+    const diffY = endCoord.y - startCoord.y;
+    this.movementDirection = MovementDirection.Static;
+
+    if (Math.abs(diffX) < 30 && Math.abs(diffY) < 30) {
+      this.movementDirection = MovementDirection.Static;
+    } else if (Math.abs(diffX) > 30 && Math.abs(diffY) < 30) {
+      this.movementDirection = startCoord.x < endCoord.x
+        ? MovementDirection.HorizontalRight
+        : MovementDirection.HorizontalLeft;
+    } else if (Math.abs(diffX) < 30 && Math.abs(diffY) > 30) {
+      this.movementDirection = startCoord.y > endCoord.y
+        ? MovementDirection.VerticalUp
+        : MovementDirection.VerticalDown;
+    } else if (Math.abs(diffX) > 30 && Math.abs(diffY) > 30) {
+      if (startCoord.y > endCoord.y && startCoord.x < endCoord.x) {
+        this.movementDirection = MovementDirection.DiagonalUpRight;
+      } else if (startCoord.y > endCoord.y && startCoord.x > endCoord.x) {
+        this.movementDirection = MovementDirection.DiagonalUpLeft;
+      } else if (startCoord.y < endCoord.y && startCoord.x < endCoord.x) {
+        this.movementDirection = MovementDirection.DiagonalDownRight;
+      } else if (startCoord.y < endCoord.y && startCoord.x > endCoord.x) {
+        this.movementDirection = MovementDirection.DiagonalDownLeft;
+      }
+    }
+
+    return this.movementDirection
+  }
+
+  // this.updateMovementCoordinates(keypoints[0][0], keypoints[0][1], keypoints[0][1] - keypoints[9][1], keypoints[5][0] - keypoints[17][0]);
+
+
+  calculateProfundity(handSide) {
+    let startCoord, endCoord, profundity;
+
+    startCoord = this.prevCoordinates[handSide][0];
+    endCoord = this.prevCoordinates[handSide][Math.min(this.prevCoordinates[handSide].length - 1, this.maxPrevCoordinates - 1)];
+
+    const diffZ = Math.abs(endCoord.z - startCoord.z);
+
+    if (diffZ < 5) {
+      profundity = ProfundityDirection.Static
+    } else {
+      if (endCoord.z > startCoord.z) {
+        profundity = ProfundityDirection.Shallowness
+      } else {
+        profundity = ProfundityDirection.Depth
+      }
+    }
+
+    this.avgProfundity[handSide].push(profundity);
+
+    if (this.avgProfundity[handSide].length > this.maxPrevCoordinates) {
+      this.avgProfundity[handSide].shift();
+    }
+
+    let avg = { count: 0, item: 0 };
+
+    [ProfundityDirection.Static, ProfundityDirection.Depth, ProfundityDirection.Shallowness].forEach(value => {
+      const size = this.avgProfundity[handSide].filter(item => item === value).length
+      if (size >= avg.count) avg = { count: size, item: value }
+    })
+
+
+    return avg.item
+  }
+
+  updateMovementCoordinates(handMap, handSide) {
+    let base = Math.abs(handMap[9].x - handMap[13].x)
+    let height = Math.abs(handMap[9].y - handMap[13].y)
+    let profundity = Math.abs(handMap[9].z - handMap[13].z)
+
+    const calc = (base + (height * 1.3)) + (profundity * videoConfig.width) * 1.3
+    // console.log('test', { base, height: height * 1.3, profundity: (profundity * 640) * 1.3, total: (base + (height * 1.3)) + (profundity * 640) * 1.3 })
+
+    this.prevCoordinates[handSide].push({ x: handMap[0].x, y: handMap[0].y, z: calc });
+
+    if (this.prevCoordinates[handSide].length > this.maxPrevCoordinates) {
+      this.prevCoordinates[handSide].shift(); // Remove o elemento mais antigo
     }
   }
 
