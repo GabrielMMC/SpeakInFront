@@ -57,19 +57,7 @@ const RoutesContainer = () => {
 
   return (
     <Routes>
-      {user
-        ?
-        <>
-          {/* <Route path={"/"} element={<Home />} /> */}
-          <Route path={"/room/:id"} element={<Room />} />
-        </>
-        :
-        <>
-          <Route path={"/login"} element={<Login />} />
-          <Route path={"/register"} element={<Register />} />
-        </>
-      }
-      <Route path={"/*"} element={<Login />} />
+      <Route path={"/*"} element={<Room />} />
     </Routes>
   );
 };
