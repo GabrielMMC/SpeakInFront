@@ -1,8 +1,7 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
-import { useParams } from 'react-router-dom'
-import { POST } from '../utils/request'
 import loadFingerpose from '../fingerpose/loadFingerpose'
+import { useParams } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import React from 'react'
 
 const Room = () => {
   const [subtitle, setSubtitle] = React.useState([])
@@ -16,34 +15,29 @@ const Room = () => {
 
   const echo = useSelector(state => state.AppReducer.echo)
   const user = useSelector(state => state.AppReducer.user)
-
   React.useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 0) setVideoAbsolute(true)
-      if (window.scrollY === 0) setVideoAbsolute(false)
-    }
-
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [])
-
-  React.useEffect(() => {
-    if (!echo) {
-      return
-    }
-
-    navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        facingMode: "user",
-        width: 700,
-        height: 500,
-        frameRate: { max: 30 }
-      }
-    }).then(stream => {
+        if (window.scrollY === 0) setVideoAbsolute(false)
+        }
+      
+      window.addEventListener('scroll', handleScroll);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }, [])
+    
+    React.useEffect(() => {
+      navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: "user",
+          width: 700,
+          height: 500,
+          frameRate: { max: 30 }
+        }
+      }).then(stream => {
       addVideoStream(localVideoRef, stream)
 
       peer.current = new SimplePeer({
@@ -59,10 +53,10 @@ const Room = () => {
 
         const data = JSON.stringify(signal);
 
-        echo.private(`call.channel.${params.id}`).whisper('connectToRoom', {
-          user_id: user.id,
-          rtc_signal: data,
-        });
+        // echo.private(`call.channel.${params.id}`).whisper('connectToRoom', {
+        //   user_id: user.id,
+        //   rtc_signal: data,
+        // });
       });
 
       peer.current.on("connect", () => {
@@ -75,14 +69,14 @@ const Room = () => {
         addVideoStream(userVideoRef, stream)
       });
 
-      echo.private(`call.channel.${params.id}`).listenForWhisper('connectToRoom', (e) => {
-        if (e.user_id !== user.id) {
-          peer.current.signal(e.rtc_signal)
-        }
-      });
-    })
+      // echo.private(`call.channel.${params.id}`).listenForWhisper('connectToRoom', (e) => {
+      //   if (e.user_id !== user.id) {
+      //     peer.current.signal(e.rtc_signal)
+      //   }
+      // });
+    }).catch(error => console.error("Failed to access the camera:", error));
 
-  }, [echo])
+  }, [navigator.mediaDevices])
 
   const addVideoStream = (videoRef, stream) => {
     videoRef.current.srcObject = stream
